@@ -1,8 +1,9 @@
+use std::collections::{BTreeMap, HashMap};
 use std::ops::Rem;
 use std::sync::{Arc, mpsc};
 use std::thread;
 
-const PUNC: &str = ".,?\"\n\t:;'";
+const PUNC: &str = ".,?\"\n\t:;'{}()";
 
 fn count_word_frequencies() {
     let text: Arc<Vec<String>> =
@@ -50,7 +51,8 @@ fn count_word_frequencies() {
                     ti += 1
                 }
                 // todo: change to return a tuple
-                tx.send(format!("thread({target}): {wc}"))
+                // tx.send(format!("thread({target}): {wc}"))
+                tx.send((target, wc));
             });
             handles.push(handle)
         }
@@ -68,10 +70,15 @@ fn count_word_frequencies() {
         handle.join().unwrap();
     }
 
-    // todo change to returning a hash map to main
+    drop(tx);
+
+    // todo print in nice format
+    let mut word_freq_map = BTreeMap::<String, i32>::new();
     for recieved in rx {
-        println!("{recieved}")
+        word_freq_map.insert(recieved.0, recieved.1);
     }
+
+    println!("{:?}", word_freq_map);
 }
 
 fn start_punc(word: &String) -> bool {
