@@ -2,6 +2,8 @@ use std::ops::Rem;
 use std::sync::{Arc, mpsc};
 use std::thread;
 
+const PUNC: &str = ".,?\"\n\t:;'";
+
 fn count_word_frequencies() {
     let text: Arc<Vec<String>> =
         Arc::new(
@@ -72,9 +74,6 @@ fn count_word_frequencies() {
     }
 }
 
-
-const PUNC: &str = ".,?\"\n\t:;";
-
 fn start_punc(word: &String) -> bool {
     let first = word.chars().nth(0).unwrap();
     if PUNC.contains(first) {
@@ -124,12 +123,10 @@ fn remove_numbers() {
     unimplemented!()
 }
 
-// todo: add error for file not found
-// todo: add default texts for practice
 fn get_text() -> String {
     use std::fs;
 
-    let file_path = "assets/sonnet_18.txt";
+    let file_path = "assets/odyssey.txt";
     fs::read_to_string(file_path)
         .expect(format!("The file {} does not exist", file_path).as_str())
 }
