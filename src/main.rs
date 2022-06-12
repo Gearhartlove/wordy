@@ -6,7 +6,7 @@ fn count_word_frequencies() {
     let text: Arc<Vec<String>> =
         Arc::new(
             get_text()
-                .split(" ")
+                .split(|c| c == ' ' || c == '\n')
                 .filter(|s| s.len() != 0)
                 .map(|s: &str|
                     s
@@ -129,7 +129,7 @@ fn remove_numbers() {
 fn get_text() -> String {
     use std::fs;
 
-    let file_path = "assets/debug.txt";
+    let file_path = "assets/sonnet_18.txt";
     fs::read_to_string(file_path)
         .expect(format!("The file {} does not exist", file_path).as_str())
 }
