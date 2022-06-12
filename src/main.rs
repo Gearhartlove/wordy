@@ -1,3 +1,4 @@
+use std::ops::Rem;
 use std::sync::{Arc, mpsc};
 use std::thread;
 
@@ -6,10 +7,12 @@ fn count_word_frequencies() {
         Arc::new(
             get_text()
                 .split(" ")
-                .map(|s| {
-                    s.rmv_punc();
-                    s.to_lowercase();
-                })
+                .filter(|s| s.len() != 0)
+                .map(|s: &str|
+                    s
+                        .to_lowercase()
+                        .rmv_punc()
+                )
                 .collect()
         );
 
@@ -50,7 +53,11 @@ fn count_word_frequencies() {
             handles.push(handle)
         }
         // update world index
-        prgm_indx += 1
+        prgm_indx += 1;
+
+        if prgm_indx % 1000 == 0 {
+            println!("{prgm_indx}");
+        }
     }
     // after every word is considered, exit the loop
 
@@ -65,25 +72,67 @@ fn count_word_frequencies() {
     }
 }
 
-// todo: add error for file not found
-// todo: add default texts for practice
-fn get_text() -> String {
-    use std::fs;
 
-    let file_path = "assets/default.txt";
-    fs::read_to_string(file_path)
-        .expect(format!("The file {} does not exist", file_path).as_str())
+const PUNC: &str = ".,?\"\n\t:;";
+
+fn start_punc(word: &String) -> bool {
+    let first = word.chars().nth(0).unwrap();
+    if PUNC.contains(first) {
+        return true;
+    }
+    return false;
 }
 
-// Removes punctuation from the start and end of the word
-fn rmv_punc(word: &str) -> String {
-    todo!()
+fn end_punc(word: &String) -> bool {
+    let len = word.len();
+    let last = word.chars().nth(len - 1).unwrap();
+    if PUNC.contains(last) {
+        return true;
+    }
+    return false;
+}
+
+trait RemovePuctuation {
+    fn rmv_punc(&mut self) -> String;
+}
+
+impl RemovePuctuation for String {
+    // Removes punctuation from the start and end of the word
+    fn rmv_punc(&mut self) -> String {
+        // if the word starts or ends with punctuation, cut it off and repeat this process
+        if start_punc(self) {
+            let rmv = self.remove(0);
+
+            #[cfg(debug_assertions)]
+            println!("removed: {rmv} from:{self}");
+
+            return self.rmv_punc();
+        } else if end_punc(self) {
+            let last = self.len() - 1;
+            let rmv = self.remove(last);
+
+            #[cfg(debug_assertions)]
+            println!("removed: {rmv} from:{self}");
+
+            return self.rmv_punc();
+        }
+        return self.to_string();
+    }
 }
 
 fn remove_numbers() {
     unimplemented!()
 }
 
+// todo: add error for file not found
+// todo: add default texts for practice
+fn get_text() -> String {
+    use std::fs;
+
+    let file_path = "assets/debug.txt";
+    fs::read_to_string(file_path)
+        .expect(format!("The file {} does not exist", file_path).as_str())
+}
 
 fn main() {
     count_word_frequencies()
