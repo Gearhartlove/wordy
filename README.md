@@ -33,15 +33,15 @@ exploration into concurrent and parallel programming using Rust.
 
 Disclaimer. The intent of this project is educational, not to count words the fastest.
 
-At a high level, wordy uses a **multi-producer single-consumer** (mpsc) channels to send information from any number
+At a high level, wordy uses a **multi-producer single-consumer** (mpsc) channel to send information from any number
 of transmitters to a receiver, which ultimately processes the result. 
 
 Important moments during this program were: 
-* Creating an **Atomic Reference Counter** (Arc) to immutably share the text among threads
+* Creating an **Atomic Reference Counter** (Arc) to immutably share text among threads
 * Spawning threads 
 * Joining threads together to wait for program to finish
 * Deciding NOT to use Mutexes
 
 Things to improve on: 
 * Integrate Tests into development process
-* Performance comparison out of curiosity
+* Compare Performance out of curiosity
