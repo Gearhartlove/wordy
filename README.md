@@ -1,5 +1,5 @@
 # wordy
-A Multi-threaded word frequency counter.
+A parallel word frequency counter.
 
 ```
 -------------------------------------------------------------
