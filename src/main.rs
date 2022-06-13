@@ -50,8 +50,6 @@ fn count_word_frequencies() {
                     }
                     ti += 1
                 }
-                // todo: change to return a tuple
-                // tx.send(format!("thread({target}): {wc}"))
                 tx.send((target, wc));
             });
             handles.push(handle)
@@ -79,6 +77,7 @@ fn count_word_frequencies() {
     }
 
     println!("{:?}", word_freq_map);
+    println!("{}", word_freq_map.len());
 }
 
 fn start_punc(word: &String) -> bool {
@@ -126,8 +125,38 @@ impl RemovePuctuation for String {
     }
 }
 
-fn remove_numbers() {
-    unimplemented!()
+// test
+fn hash_method() {
+    let text: Arc<Vec<String>> =
+        Arc::new(
+            get_text()
+                .split(|c| c == ' ' || c == '\n')
+                .filter(|s| s.len() != 0)
+                .map(|s: &str|
+                    s
+                        .to_lowercase()
+                        .rmv_punc()
+                )
+                .collect()
+        );
+
+    let mut prgm_indx = 0;
+    let mut hash = HashMap::<String, i32>::new();
+    for word in text.iter() {
+        if hash.contains_key(word) {
+            *hash.get_mut(word).unwrap() += 1;
+        }
+        else {
+            hash.insert(word.clone(), 0);
+        }
+
+        prgm_indx += 1;
+        if prgm_indx % 1000 == 0 {
+            println!("{prgm_indx}");
+        }
+    }
+    println!("{:?}", hash);
+    println!("{}", hash.len());
 }
 
 fn get_text() -> String {
@@ -138,6 +167,8 @@ fn get_text() -> String {
         .expect(format!("The file {} does not exist", file_path).as_str())
 }
 
+// todo: compare performance beetween conventional counter and multithreading counter
 fn main() {
-    count_word_frequencies()
+    //count_word_frequencies()
+    hash_method()
 }
