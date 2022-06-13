@@ -27,7 +27,7 @@ pub fn setup_text(text: &str) -> Arc<Vec<String>> {
                 .filter(|s| s.len() != 0) // removes any remaining "", couldo: improve to just one call
                 .collect()
         );
-    return text
+    return text;
 }
 
 pub fn start_punc(word: &String) -> bool {
@@ -56,7 +56,7 @@ impl RemovePuctuation for String {
     fn rmv_punc(&mut self) -> String {
         // if the word consisted of only punctuation
         if self.len() == 0 {
-            return "".to_string()
+            return "".to_string();
         }
 
         // if the word starts or ends with punctuation, cut it off and repeat this process
@@ -80,7 +80,28 @@ impl RemovePuctuation for String {
     }
 }
 
+pub fn pretty_print(map: HashMap<i32, Vec<String>>) {
+    let mut keys: Vec<i32> = vec![];
 
-fn pretty_print() {
+    for key in map.keys() {
+        keys.push(key.clone())
+    }
 
+    keys.sort();
+
+    for key in keys.iter() {
+        println!("\n-------------------------------------------------------------");
+        println!("Word Frequency: {}", key);
+        let mut count = 0;
+        let words = map.get(key).unwrap();
+
+        for word in words.iter() {
+            count += 1;
+            if count % 9 == 0 {
+                println!("{} ", word)
+            } else {
+                print!("{} ", word)
+            }
+        }
+    }
 }
