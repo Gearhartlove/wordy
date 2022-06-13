@@ -1,24 +1,18 @@
+mod util;
+
 use std::collections::{BTreeMap, HashMap};
 use std::ops::Rem;
 use std::sync::{Arc, mpsc};
 use std::thread;
+use util::*;
 
-const PUNC: &str = ".,?\"\n\t:;'{}()";
-
-fn count_word_frequencies() {
-    let text: Arc<Vec<String>> =
-        Arc::new(
-            get_text()
-                .split(|c| c == ' ' || c == '\n')
-                .filter(|s| s.len() != 0)
-                .map(|s: &str|
-                    s
-                        .to_lowercase()
-                        .rmv_punc()
-                )
-                .collect()
-        );
-
+/// Counts the frequency of words in a text document using a channel. A new thread is spawned
+/// any time a new undiscovered word is considered. That thread then looks for that specific word
+/// throughout the rest of the document. Once the thread has considered every word, it's
+/// transmitter sends a message containing the target word and frequency. This message is
+/// received by a receiver, which collects the data into a hash map.
+fn count_word_frequencies(text: &str) {
+    let text: Arc<Vec<String>> = setup_text(text);
     // create channel
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
@@ -57,6 +51,7 @@ fn count_word_frequencies() {
         // update world index
         prgm_indx += 1;
 
+        # [cfg(debug_assertions)]
         if prgm_indx % 1000 == 0 {
             println!("{prgm_indx}");
         }
@@ -80,95 +75,41 @@ fn count_word_frequencies() {
     println!("{}", word_freq_map.len());
 }
 
-fn start_punc(word: &String) -> bool {
-    let first = word.chars().nth(0).unwrap();
-    if PUNC.contains(first) {
-        return true;
-    }
-    return false;
-}
+/// "Standard" word frequency word counter. Looks at every word in a text document. If the word
+/// has not yet been considered, add it to the hash map. Otherwise, increment the word's value
+/// in the hashmap.
+fn hash_freq_word_count(text: &str) {
+    let text: Arc<Vec<String>> = setup_text(text);
 
-fn end_punc(word: &String) -> bool {
-    let len = word.len();
-    let last = word.chars().nth(len - 1).unwrap();
-    if PUNC.contains(last) {
-        return true;
-    }
-    return false;
-}
-
-trait RemovePuctuation {
-    fn rmv_punc(&mut self) -> String;
-}
-
-impl RemovePuctuation for String {
-    // Removes punctuation from the start and end of the word
-    fn rmv_punc(&mut self) -> String {
-        // if the word starts or ends with punctuation, cut it off and repeat this process
-        if start_punc(self) {
-            let rmv = self.remove(0);
-
-            #[cfg(debug_assertions)]
-            println!("removed: {rmv} from:{self}");
-
-            return self.rmv_punc();
-        } else if end_punc(self) {
-            let last = self.len() - 1;
-            let rmv = self.remove(last);
-
-            #[cfg(debug_assertions)]
-            println!("removed: {rmv} from:{self}");
-
-            return self.rmv_punc();
-        }
-        return self.to_string();
-    }
-}
-
-// test
-fn hash_method() {
-    let text: Arc<Vec<String>> =
-        Arc::new(
-            get_text()
-                .split(|c| c == ' ' || c == '\n')
-                .filter(|s| s.len() != 0)
-                .map(|s: &str|
-                    s
-                        .to_lowercase()
-                        .rmv_punc()
-                )
-                .collect()
-        );
-
+    # [cfg(debug_assertions)]
     let mut prgm_indx = 0;
+
     let mut hash = HashMap::<String, i32>::new();
+
+    // Consider each word in the text document
     for word in text.iter() {
         if hash.contains_key(word) {
             *hash.get_mut(word).unwrap() += 1;
-        }
-        else {
+        } else {
             hash.insert(word.clone(), 0);
         }
 
-        prgm_indx += 1;
-        if prgm_indx % 1000 == 0 {
-            println!("{prgm_indx}");
-        }
+        # [cfg(debug_assertions)]
+            {
+                prgm_indx += 1;
+                if prgm_indx % 1000 == 0 {
+                    println!("{prgm_indx}");
+                }
+            }
+
     }
     println!("{:?}", hash);
     println!("{}", hash.len());
 }
 
-fn get_text() -> String {
-    use std::fs;
-
-    let file_path = "assets/odyssey.txt";
-    fs::read_to_string(file_path)
-        .expect(format!("The file {} does not exist", file_path).as_str())
-}
 
 // todo: compare performance beetween conventional counter and multithreading counter
 fn main() {
-    //count_word_frequencies()
-    hash_method()
+    //count_word_frequencies("odyssey");
+    hash_freq_word_count("odyssey")
 }
